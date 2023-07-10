@@ -1,0 +1,26 @@
+[project]
+name = "llama.cpp"
+version = "0.1.0"
+description = "Add a short description here"
+authors = ["Tim de Jager <tim@prefix.dev>"]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[tasks]
+build = "make"
+build-blas = "make 'LLAMA_OPENBLAS=1'"
+build-metal = "LLAMA_METAL=1 make"
+download_model = {cmd = "python ./download_open_llama.py", depends_on = ["build"]}
+convert_model = {cmd = "python check-convert.py", depends_on=["download_model"]}
+interactive = {cmd = """./main -m ./models/open_llama/ggml-model-f16.bin
+ -c 512 -b 1024 -n 256 --keep 48 \
+    --repeat_penalty 1.0 --color -i \
+    -r 'User:' -f prompts/chat-with-bob.txt""", depends_on=["convert_model"] }
+
+[dependencies]
+make = "4.3.*"
+cxx-compiler = "1.5.2.*"
+numpy = "1.25.1.*"
+requests = "2.31.0.*"
+tqdm = "4.65.0.*"
+sentencepiece = "0.1.99.*"
